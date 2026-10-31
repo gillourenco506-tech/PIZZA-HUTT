@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pizza Hut – Zango</title>
+<style>
+:root{--bg:#faf7f4;--card:#fff;--tx:#1a1a1a;--mu:#6b6b6b;--rd:#c8102e;--rd2:#9e0b23;--bd:#e6e0da;--ok:#1f8a4c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141212;--card:#211e1e;--tx:#f3efec;--mu:#a69f9a;--bd:#363131}}
+:root[data-theme="dark"]{--bg:#141212;--card:#211e1e;--tx:#f3efec;--mu:#a69f9a;--bd:#363131}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--rd);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+header h1{font-size:1.15rem;margin:0;flex:1}header small{display:block;font-weight:400;opacity:.85;font-size:.75rem}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:9px 14px;background:var(--rd);color:#fff;font-weight:600}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}button.k{background:#111;color:#fff}button.ok{background:var(--ok)}
+header button{background:#fff;color:var(--rd)}
+main{max-width:1000px;margin:0 auto;padding:14px}
+input,select,textarea{font:inherit;width:100%;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:6px 0 10px}.tabs button{white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
+.em{font-size:3rem;text-align:center;background:linear-gradient(135deg,#ffe3e3,#fff3d6);border-radius:10px;padding:10px;margin-bottom:8px}
+.pr{color:var(--rd);font-weight:700}.mu{color:var(--mu);font-size:.85rem}
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.modal>div{background:var(--card);width:100%;max-width:520px;max-height:90vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:6px 0}
+.pill{padding:3px 10px;border-radius:99px;font-size:.78rem;font-weight:700;background:#eee;color:#222}
+.st0{background:#ffd9de;color:var(--rd2)}.st5{background:#d5f2e0;color:#146136}.st6{background:#ddd;color:#444}
+.steps{display:flex;gap:4px;margin:10px 0}.steps i{flex:1;height:6px;border-radius:4px;background:var(--bd)}.steps i.on{background:var(--ok)}
+.new{animation:fl 1s infinite alternate}@keyframes fl{to{background:#ffd9de}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px}.stats b{font-size:1.4rem;display:block}
+.cartbar{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));z-index:6}
+.cartbar button{width:100%;max-width:520px;display:block;margin:auto;padding:14px}
+.hero{background:linear-gradient(135deg,#c8102e,#6e0715);color:#fff;border-radius:18px;padding:22px 18px;margin-bottom:14px;position:relative;overflow:hidden}.hero h2{margin:0 0 4px;font-size:1.5rem}.hero p{margin:0;opacity:.9}.hero .big{position:absolute;right:-8px;top:-10px;font-size:6.5rem;opacity:.22}
+.tbl{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.tbl button{padding:10px 0;background:var(--card);color:var(--tx);border:2px solid var(--bd)}.tbl button.sel{background:var(--rd);color:#fff;border-color:var(--rd)}.tbl button.busy{background:#ffe3b3;color:#5a3600;border-color:#f0b24a}
+.ph{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-bottom:8px;background:var(--bd)}.card{box-shadow:0 2px 10px #0000000f;transition:transform .15s}.grid .card:hover{transform:translateY(-2px)}.badge{background:#111;color:#fff;border-radius:8px;padding:2px 10px;font-weight:700}
+@media(max-width:520px){.tbl{grid-template-columns:repeat(3,1fr)}}
+#ticket{display:none}
+@media print{body>*:not(#ticket){display:none!important}#ticket{display:block;color:#000;background:#fff;font:14px monospace;padding:10px}}
+</style></head><body>
+<header><h1>🍕 Pizza Hut – Zango<small>Aberto até às 22h · 932 912 732</small></h1><button id="nav"></button></header>
+<main id="app"></main><div id="ticket"></div><div id="modal"></div><div id="cb"></div>
+<script>
+const HOURS="22h",KZ=n=>Math.round(n).toLocaleString("pt-PT")+" Kz",$=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ST=["Recebido","Confirmado","Em preparação","Pronto","Saiu para entrega","Concluído","Cancelado"];
+const CATS=["Pizzas","Bebidas","Entradas","Sobremesas","Combos"];
+const SIZES=[["Pequena",1],["Média",1.4],["Grande",1.8]];
+const EXTRAS=[["Queijo extra",500],["Bacon",700],["Cogumelos",400],["Azeitonas",300]];
+const DEMO=[
+["Margherita","Pizzas","🍕","Molho de tomate, mozzarella e manjericão",4500,1],
+["Pepperoni","Pizzas","🍕","Pepperoni e mozzarella",5500,1],
+["Frango BBQ","Pizzas","🍗","Frango, molho barbecue e cebola",6000,1],
+["Suprema","Pizzas","🌶️","Carne, pimento, cebola, azeitonas",6500,1],
+["Coca-Cola 500ml","Bebidas","🥤","Garrafa 500ml",700,0],
+["Sumo Natural","Bebidas","🧃","Sumo do dia",900,0],
+["Água 500ml","Bebidas","💧","Água mineral",400,0],
+["Pão de Alho","Entradas","🥖","Pão com manteiga de alho",1800,0],
+["Asas de Frango (6)","Entradas","🍗","Asas picantes ou BBQ",3500,0],
+["Brownie","Sobremesas","🍫","Brownie de chocolate",1500,0],
+["Gelado","Sobremesas","🍨","Taça de gelado",1200,0],
+["Combo Família","Combos","🎉","2 pizzas médias + 2 bebidas + pão de alho",14000,0]
+].map((a,i)=>({id:"p"+i,name:a[0],cat:a[1],emoji:a[2],desc:a[3],price:a[4],sized:a[5],on:true}));
+let table=0,dbHas=false,db,user,isAdmin=false,products=DEMO,cart=[],cat="Pizzas",q="",orders=[],my=[],route=location.hash==="#admin"?"admin":"menu",fSt="",fDate="",first=true,unsubs=[];
+try{my=JSON.parse(localStorage.getItem("my")||"[]")}catch(e){}
+const hm0=location.hash.match(/^#mesa-([1-6])$/);if(hm0)table=+hm0[1];else{try{table=+localStorage.getItem("table")||0}catch(e){}}
+const saveMy=()=>{try{localStorage.setItem("my",JSON.stringify(my))}catch(e){}};
+const cartTotal=()=>cart.reduce((s,i)=>s+i.price*i.qty,0);
+
+async function init(){
+  try{db=await claude.use("db");user=await claude.use("user");}catch(e){}
+  isAdmin=!!(user&&user.canEdit());
+  $("#nav").onclick=()=>{route=route==="admin"?"menu":"admin";location.hash=route==="admin"?"admin":"";draw()};
+  window.onhashchange=()=>{const m=location.hash.match(/^#mesa-([1-6])$/);if(m)table=+m[1];route=location.hash==="#admin"?"admin":"menu";draw()};
+  if(db){
+    db.collection("products").onSnapshot(s=>{dbHas=!s.empty;if(!s.empty)products=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.n||0)-(b.n||0));draw()},()=>{});
+    if(isAdmin)db.collection("orders").orderBy("createdAt","desc").limit(300).onSnapshot(s=>{
+      if(!first)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().status===0)alertNew(c.doc.data())});
+      first=false;orders=s.docs.map(d=>d.data());if(route==="admin")draw()},()=>{});
+    my.forEach(n=>db.doc("orders/"+n).onSnapshot(d=>{if(d.exists){const i=myOrders.findIndex(o=>o.num===n);i<0?myOrders.push(d.data()):myOrders[i]=d.data();if(route==="track")draw()}},()=>{}));
+  }
+  draw();
+}
+const myOrders=[];
+function alertNew(o){
+  try{const c=new (window.AudioContext||window.webkitAudioContext)();[0,.25,.5].forEach(t=>{const a=c.createOscillator(),g=c.createGain();a.connect(g);g.connect(c.destination);a.frequency.value=880;g.gain.value=.3;a.start(c.currentTime+t);a.stop(c.currentTime+t+.15)})}catch(e){}
+  document.title="🔔 Novo pedido! "+o.num;setTimeout(()=>document.title="Pizza Hut – Zango",6000);
+}
+function draw(){
+  $("#nav").textContent=route==="admin"?"← Cardápio":"Central";
+  $("#nav").style.display=isAdmin||route==="admin"?"":"none";
+  if(route==="admin")return drawAdmin();
+  drawMenu();
+}
+/* ---------- CLIENTE ---------- */
+function drawMenu(){
+  const list=products.filter(p=>p.on!==false&&(q?(p.name+p.desc).toLowerCase().includes(q.toLowerCase()):p.cat===cat));
+  $("#app").innerHTML=`<div class="hero"><div class="big">🍕</div><h2>Peça diretamente da sua mesa</h2><p>Escolha a mesa, monte o pedido e nós levamos até si.</p></div>
+  <div class="card" style="margin-bottom:12px"><b>Em que mesa está?</b><div class="tbl" style="margin-top:8px">${[1,2,3,4,5,6].map(n=>`<button class="${table===n?"sel":""}" data-tb="${n}">${n}</button>`).join("")}</div><div class="mu" style="margin-top:6px">${table?"Os seus pedidos serão entregues na Mesa "+table+".":"Sem mesa? Pode pedir para entrega ou levantamento no carrinho."}</div></div>
+  <input id="q" placeholder="🔍 Pesquisar no cardápio" value="${esc(q)}">
+  <div class="tabs">${CATS.map(c=>`<button class="${c===cat&&!q?"":"g"}" data-c="${c}">${c}</button>`).join("")}<button class="g" data-c="__track">📦 Meus pedidos</button></div>
+  ${!db?`<div class="card mu">Para fazer pedidos, abra esta página com a sessão iniciada no claude.ai.</div>`:""}
+  <div class="grid">${list.map(p=>`<div class="card">${p.img?`<img class="ph" src="${esc(p.img)}" alt="${esc(p.name)}">`:`<div class="em">${esc(p.emoji||"🍕")}</div>`}<b>${esc(p.name)}</b><div class="mu">${esc(p.desc)}</div><div class="row"><span class="pr">${p.sized?"desde ":""}${KZ(p.price)}</span><button data-a="${p.id}">Adicionar</button></div></div>`).join("")||"<p class='mu'>Nada encontrado.</p>"}</div>
+  <div class="card mu" style="margin-top:16px">📍 Pizza Hut – Zango · 2CG2+G9, Luanda<br>📞 <a href="tel:932912732">932 912 732</a> · <a href="https://wa.me/244932912732">WhatsApp</a> · Aberto até às ${HOURS}</div><div style="height:80px"></div>`;
+  const qi=$("#q");qi.oninput=e=>{q=e.target.value;const pos=q.length;drawMenu();const n=$("#q");n.focus();n.setSelectionRange(pos,pos)};
+  document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{if(b.dataset.c==="__track"){route="track";return drawTrack()}q="";cat=b.dataset.c;drawMenu()});
+  document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>pick(products.find(p=>p.id===b.dataset.a)));
+  document.querySelectorAll("[data-tb]").forEach(b=>b.onclick=()=>{table=table===+b.dataset.tb?0:+b.dataset.tb;try{localStorage.setItem("table",table)}catch(e){}drawMenu()});
+  const n=cart.reduce((s,i)=>s+i.qty,0);
+  $("#cb").innerHTML=n?`<div class="cartbar"><button class="k" id="oc">🛒 Ver carrinho (${n}) · ${KZ(cartTotal())}</button></div>`:"";
+  if(n)$("#oc").onclick=openCart;
+}
+function modal(h){$("#modal").innerHTML=h?`<div class="modal" id="mo"><div>${h}</div></div>`:"";const m=$("#mo");if(m)m.onclick=e=>{if(e.target===m)modal("")}}
+function pick(p){
+  const ex=p.cat==="Pizzas";
+  modal(`<h3>${esc(p.emoji)} ${esc(p.name)}</h3>
+  ${p.sized?`<b>Tamanho</b>${SIZES.map((s,i)=>`<label class="row"><span><input type="radio" name="sz" value="${i}" ${i===1?"checked":""} style="width:auto"> ${s[0]}</span><span class="pr">${KZ(p.price*s[1])}</span></label>`).join("")}`:""}
+  ${ex?`<b>Ingredientes adicionais</b>${EXTRAS.map((e,i)=>`<label class="row"><span><input type="checkbox" class="ex" value="${i}" style="width:auto"> ${e[0]}</span><span class="mu">+${KZ(e[1])}</span></label>`).join("")}`:""}
+  <div class="row"><button class="g" onclick="modal('')">Cancelar</button><button id="add">Adicionar ao carrinho</button></div>`);
+  $("#add").onclick=()=>{
+    const si=p.sized?+document.querySelector("[name=sz]:checked").value:-1;
+    const xs=[...document.querySelectorAll(".ex:checked")].map(c=>EXTRAS[+c.value]);
+    const price=(si>=0?p.price*SIZES[si][1]:p.price)+xs.reduce((s,e)=>s+e[1],0);
+    const key=p.id+si+xs.map(e=>e[0]).join();
+    const f=cart.find(i=>i.key===key);f?f.qty++:cart.push({key,n:p.name,size:si>=0?SIZES[si][0]:"",extras:xs.map(e=>e[0]),price:Math.round(price),qty:1});
+    modal("");drawMenu();
+  };
+}
+function openCart(){
+  if(!cart.length){modal("");return drawMenu()}
+  modal(`<h3>🛒 O seu pedido</h3>${cart.map((i,x)=>`<div class="row"><div><b>${esc(i.n)}</b> ${esc(i.size)}<div class="mu">${esc(i.extras.join(", "))}</div></div>
+  <div style="white-space:nowrap"><button class="g" data-m="${x}">−</button> ${i.qty} <button class="g" data-p="${x}">+</button> <button class="g" data-d="${x}">🗑</button></div></div>`).join("")}
+  <div class="row"><b>Total</b><b class="pr">${KZ(cartTotal())}</b></div><hr style="border-color:var(--bd)">
+  <div class="row"><input id="fn" placeholder="Nome"></div><div class="row"><input id="fp" placeholder="Telefone (obrigatório para entrega)" inputmode="tel"></div>
+  <div class="row"><select id="ft"><option value="Mesa" ${table?"selected":""}>🍽 Comer aqui (na mesa)</option><option value="Entrega" ${table?"":"selected"}>🛵 Entrega</option><option value="Levantamento">🛍 Levantamento no restaurante</option></select></div>
+  <div class="row" id="tr"><select id="fm"><option value="0">Escolha a mesa</option>${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${table===n?"selected":""}>Mesa ${n}</option>`).join("")}</select></div>
+  <div class="row"><input id="fa" placeholder="Endereço de entrega"></div><div class="row"><textarea id="fo" rows="2" placeholder="Observações"></textarea></div>
+  <p class="mu">Pagamento no restaurante ou na entrega.</p><p id="err" style="color:var(--rd)"></p>
+  <div class="row"><button class="g" onclick="modal('')">Fechar</button><button id="go" class="ok">Confirmar pedido</button></div>`);
+  document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{const i=cart[b.dataset.m];if(--i.qty<1)cart.splice(b.dataset.m,1);openCart();drawMenu()});
+  document.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{cart[b.dataset.p].qty++;openCart();drawMenu()});
+  document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{cart.splice(b.dataset.d,1);openCart();drawMenu()});
+  const sync=()=>{const t=$("#ft").value;$("#fa").parentNode.style.display=t==="Entrega"?"":"none";$("#tr").style.display=t==="Mesa"?"":"none"};$("#ft").onchange=sync;sync();
+  $("#go").onclick=submit;
+}
+async function submit(){
+  const name=$("#fn").value.trim(),phone=$("#fp").value.trim(),type=$("#ft").value,address=$("#fa").value.trim(),mesa=type==="Mesa"?+$("#fm").value:0;
+  const err=m=>$("#err").textContent=m;
+  if(!db)return err("Sessão necessária para enviar pedidos.");
+  if(!name)return err("Indique o seu nome.");if(type!=="Mesa"&&phone.replace(/\D/g,"").length<9)return err("Indique um telefone válido.");if(type==="Mesa"&&!mesa)return err("Escolha a sua mesa.");
+  if(type==="Entrega"&&!address)return err("Indique o endereço de entrega.");
+  const d=new Date(),num="PH"+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")+"-"+Math.floor(1000+Math.random()*9000);
+  const o={num,name,phone,type,mesa,address:type==="Entrega"?address:"",notes:$("#fo").value.trim(),items:cart.map(({n,size,extras,price,qty})=>({n,size,extras,price,qty})),total:cartTotal(),status:0,createdAt:Date.now()};
+  $("#go").disabled=true;
+  try{await db.doc("orders/"+num).set(o)}catch(e){$("#go").disabled=false;return err("Não foi possível enviar. Tente novamente.")}
+  my.unshift(num);saveMy();myOrders.unshift(o);
+  db.doc("orders/"+num).onSnapshot(s=>{if(s.exists){const i=myOrders.findIndex(x=>x.num===num);myOrders[i]=s.data();if(route==="track")draw2()}},()=>{});
+  cart=[];modal(`<h3>✅ Pedido enviado!</h3><p>O seu número: <b class="pr">${num}</b></p><p class="mu">Acompanhe o estado em “Meus pedidos”.</p><button onclick="modal('');route='track';drawTrack()">Acompanhar</button>`);
+  drawMenu();
+}
+const draw2=()=>route==="track"?drawTrack():0;
+function drawTrack(){
+  $("#cb").innerHTML="";
+  $("#app").innerHTML=`<button class="g" id="bk">← Cardápio</button><h3>Meus pedidos</h3>${myOrders.map(o=>`<div class="card" style="margin-bottom:10px"><div class="row"><b>${o.mesa?`Mesa ${o.mesa} · `:""}${o.num}</b><span class="pill st${o.status===5?5:o.status===6?6:0}">${ST[o.status]}</span></div>
+  <div class="steps">${ST.slice(0,6).map((s,i)=>`<i class="${o.status<6&&i<=o.status?"on":""}" title="${s}"></i>`).join("")}</div>
+  <div class="mu">${o.items.map(i=>i.qty+"× "+esc(i.n)).join(", ")}</div><b>${KZ(o.total)}</b></div>`).join("")||"<p class='mu'>Ainda não fez pedidos neste dispositivo.</p>"}`;
+  $("#bk").onclick=()=>{route="menu";draw()};
+}
+/* ---------- ADMIN ---------- */
+let sel=null,tab="orders",fM=0;
+function drawAdmin(){
+  $("#cb").innerHTML="";
+  if(!isAdmin)return $("#app").innerHTML=`<div class="card"><h3>🔒 Acesso restrito</h3><p>A central é só para o proprietário e editores desta página. Inicie sessão no claude.ai com uma conta autorizada.</p></div>`;
+  const today=new Date().toDateString(),td=orders.filter(o=>new Date(o.createdAt).toDateString()===today&&o.status!==6);
+  let list=orders.filter(o=>(fSt===""||o.status==fSt)&&(!fM||o.mesa===fM)&&(!fDate||new Date(o.createdAt).toISOString().slice(0,10)===fDate));
+  const pend=orders.filter(o=>o.status===0),busy=new Set(orders.filter(o=>o.mesa&&o.status<5).map(o=>o.mesa));
+  $("#app").innerHTML=`<div class="tabs"><button class="${tab==="orders"?"":"g"}" data-t="orders">Pedidos ${pend.length?"("+pend.length+")":""}</button><button class="${tab==="menu"?"":"g"}" data-t="menu">Produtos</button></div>
+  ${tab==="menu"?adminMenu():`<div class="stats"><div class="card">Pedidos hoje<b>${td.length}</b></div><div class="card">Faturação estimada hoje<b>${KZ(td.reduce((s,o)=>s+o.total,0))}</b></div><div class="card">Pendentes<b>${pend.length}</b></div><div class="card">Mesas ocupadas<b>${busy.size}/6</b></div></div>
+  <div class="card" style="margin-bottom:12px"><b>Mesas</b> <span class="mu">(laranja = com pedido ativo; toque para filtrar)</span><div class="tbl" style="margin-top:8px">${[1,2,3,4,5,6].map(n=>`<button class="${busy.has(n)?"busy":""} ${fM===n?"sel":""}" data-ft="${n}">${n}</button>`).join("")}</div></div>
+  <div class="row"><select id="fs"><option value="">Todos os estados</option>${ST.map((s,i)=>`<option value="${i}" ${fSt!==""&&fSt==i?"selected":""}>${s}</option>`).join("")}</select><input id="fd" type="date" value="${fDate}"></div>
+  ${list.map(o=>`<div class="card ${o.status===0?"new":""}" style="margin:8px 0"><div class="row"><b>${o.mesa?`<span class="badge">Mesa ${o.mesa}</span> `:""}${o.num}</b><span class="pill st${o.status===0?0:o.status===5?5:o.status===6?6:9}">${ST[o.status]}</span></div>
+  <div>${esc(o.name)} · <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a> · ${o.type}</div>${o.address?`<div class="mu">📍 ${esc(o.address)}</div>`:""}
+  <div>${o.items.map(i=>`${i.qty}× ${esc(i.n)} ${esc(i.size)} ${i.extras.length?"(+"+esc(i.extras.join(", "))+")":""}`).join("<br>")}</div>${o.notes?`<div class="mu">📝 ${esc(o.notes)}</div>`:""}
+  <div class="row"><b class="pr">${KZ(o.total)}</b><span class="mu">${new Date(o.createdAt).toLocaleString("pt-PT")}</span></div>
+  <div class="row" style="flex-wrap:wrap;justify-content:flex-start">${o.status===0?`<button class="ok" data-s="${o.num}|1">Aceitar</button><button data-s="${o.num}|6">Rejeitar</button>`:ST.map((s,i)=>(i===o.status||(o.mesa&&i===4))?"":`<button class="g" data-s="${o.num}|${i}">${s}</button>`).join("")}<button class="k" data-pr="${o.num}">🖨 Imprimir</button></div></div>`).join("")||"<p class='mu'>Sem pedidos.</p>"}`}`;
+  document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{tab=b.dataset.t;drawAdmin()});
+  if(tab==="orders"){
+    $("#fs").onchange=e=>{fSt=e.target.value;drawAdmin()};document.querySelectorAll("[data-ft]").forEach(b=>b.onclick=()=>{fM=fM===+b.dataset.ft?0:+b.dataset.ft;drawAdmin()});$("#fd").onchange=e=>{fDate=e.target.value;drawAdmin()};
+    document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const[n,s]=b.dataset.s.split("|");db.doc("orders/"+n).update({status:+s})});
+    document.querySelectorAll("[data-pr]").forEach(b=>b.onclick=()=>{const o=orders.find(x=>x.num===b.dataset.pr);
+      $("#ticket").innerHTML=`<h2>Pizza Hut – Zango</h2><p>Pedido ${o.num}<br>${new Date(o.createdAt).toLocaleString("pt-PT")}</p><p>${o.mesa?"<b>MESA "+o.mesa+"</b><br>":""}${esc(o.name)} · ${esc(o.phone)}<br>${o.type} ${esc(o.address)}</p><hr>${o.items.map(i=>`${i.qty}x ${esc(i.n)} ${esc(i.size)} ${esc(i.extras.join(","))} — ${KZ(i.price*i.qty)}`).join("<br>")}<hr><b>TOTAL ${KZ(o.total)}</b><p>${esc(o.notes)}</p>`;
+      try{window.print()}catch(e){}});
+  }else bindMenu();
+}
+function adminMenu(){
+  return `<div class="row"><button id="np">+ Novo produto</button><button class="g" id="demo">Carregar dados de demonstração</button></div>
+  ${products.map(p=>`<div class="card" style="margin:8px 0"><div class="row"><input data-f="emoji" data-i="${p.id}" value="${esc(p.emoji)}" style="width:70px"><input data-f="name" data-i="${p.id}" value="${esc(p.name)}"></div>
+  <div class="row"><input data-f="desc" data-i="${p.id}" value="${esc(p.desc)}"></div>
+  <div class="row"><select data-f="cat" data-i="${p.id}">${CATS.map(c=>`<option ${c===p.cat?"selected":""}>${c}</option>`).join("")}</select><input data-f="price" data-i="${p.id}" type="number" value="${p.price}"></div>
+  <div class="row">${p.img?`<img class="ph" style="width:70px;aspect-ratio:1" src="${esc(p.img)}" alt="">`:""}<label class="mu">📷 Foto: <input type="file" accept="image/*" data-up="${p.id}" style="width:auto"></label></div>
+  <div class="row"><label><input type="checkbox" data-f="on" data-i="${p.id}" ${p.on!==false?"checked":""} style="width:auto"> Disponível</label><label><input type="checkbox" data-f="sized" data-i="${p.id}" ${p.sized?"checked":""} style="width:auto"> Tamanhos</label><button class="g" data-x="${p.id}">Apagar</button></div></div>`).join("")}`;
+}
+function bindMenu(){}
+document.addEventListener("change",async e=>{
+  const t=e.target;if(!t.dataset||!t.dataset.f||!db)return;
+  let v=t.type==="checkbox"?(t.checked?(t.dataset.f==="sized"?1:true):(t.dataset.f==="sized"?0:false)):t.value;
+  if(t.dataset.f==="price")v=+v;
+  const id=t.dataset.i;if(!dbHas&&DEMO.some(d=>d.id===id))await seed();
+  db.doc("products/"+id).update({[t.dataset.f]:v}).catch(()=>{});
+});
+document.addEventListener("click",async e=>{
+  const t=e.target;if(!db||!isAdmin)return;
+  if(t.id==="demo"&&confirm("Repor o cardápio de demonstração?"))await seed();
+  if(t.id==="np")db.collection("products").add({name:"Novo produto",cat:cat,emoji:"🍕",desc:"Descrição",price:1000,sized:0,on:true,n:Date.now()});
+  if(t.dataset.x&&confirm("Apagar este produto?"))db.doc("products/"+t.dataset.x).delete();
+});
+async function seed(){for(const [i,p] of DEMO.entries()){const{id,...d}=p;await db.doc("products/"+id).set({...d,n:i})}dbHas=true}
+document.addEventListener("change",async e=>{const t=e.target;if(!t.dataset||!t.dataset.up||!t.files||!t.files[0]||!db)return;
+  try{const as=await claude.use("assets");if(!as)return alert("O carregamento de fotos não está disponível.");
+  if(!dbHas&&DEMO.some(d=>d.id===t.dataset.up))await seed();
+  const r=await as.upload(t.files[0]);await db.doc("products/"+t.dataset.up).update({img:r.url})}catch(x){alert("Não foi possível carregar a foto.")}});
+init();
+</script></body></html>
